@@ -3,7 +3,7 @@
 #ifndef QUICK_SORT
 #define QUICK_SORT
 template <typename T>
-int partition(std::vector<T> arr, int low, int high)
+int partition(std::vector<T> &arr, int low, int high)
 {
     int pivot = arr[high]; // pivot
     int i = (low - 1);     // Index of smaller element
@@ -27,7 +27,7 @@ int partition(std::vector<T> arr, int low, int high)
   low  --> Starting index,
   high  --> Ending index */
 template <typename T>
-void _qsort(std::vector<T> v, int low, int high)
+void _qsort(std::vector<T> &v, int low, int high)
 {
     if (low < high)
     {

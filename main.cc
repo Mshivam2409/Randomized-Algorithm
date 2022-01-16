@@ -7,7 +7,9 @@
 #ifndef SIZE
 #define SIZE 100
 #endif
+#ifdef OVERRIDE_ITERATIONS
 #define ITERATIONS 500
+#endif
 
 static void BM_QuickSort(benchmark::State &state)
 {
@@ -18,11 +20,17 @@ static void BM_QuickSort(benchmark::State &state)
     for (int i = 1; i <= SIZE; i++)
         v.push_back(distr(generator));
 
+    state.counters.insert({"comparisions", 0});
+
     for (auto _ : state)
         quick_sort<long double>(v);
 }
 // Register the function as a benchmark
+#ifdef OVERRIDE_ITERATIONS
 BENCHMARK(BM_QuickSort)->Iterations(ITERATIONS);
+#else
+BENCHMARK(BM_QuickSort);
+#endif
 
 static void BM_QuickSortRandom(benchmark::State &state)
 {
@@ -34,10 +42,14 @@ static void BM_QuickSortRandom(benchmark::State &state)
         v.push_back(distr(generator));
 
     for (auto _ : state)
-        quick_sort_rand<long double>(v, generator);
+        quick_sort_rand<long double>(v);
 }
 // Register the function as a benchmark
+#ifdef OVERRIDE_ITERATIONS
 BENCHMARK(BM_QuickSortRandom)->Iterations(ITERATIONS);
+#else
+BENCHMARK(BM_QuickSortRandom);
+#endif
 
 static void BM_MergeSort(benchmark::State &state)
 {
@@ -52,6 +64,10 @@ static void BM_MergeSort(benchmark::State &state)
         merge_sort(v.begin(), v.end());
 }
 
+#ifdef OVERRIDE_ITERATIONS
 BENCHMARK(BM_MergeSort)->Iterations(ITERATIONS);
+#else
+BENCHMARK(BM_MergeSort);
+#endif
 
 BENCHMARK_MAIN();

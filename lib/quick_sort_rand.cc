@@ -1,46 +1,41 @@
 #include <vector>
 #include <random>
-#include "quick_sort.cc"
 
 #ifndef RANDOMIZED_QUICK_SORT
 #define RANDOMIZED_QUICK_SORT
 template <typename T>
-int partition_r(std::vector<T> v, int low, int high, std::mt19937 generator)
+int partition(std::vector<T> &data, int begin, int end)
 {
-    // Generate a random number in between
-    // low .. high
-    auto rand = generator();
-    int random = low + rand % (high - low);
-
-    // Swap A[random] with A[high]
-    std::swap(v[random], v[high]);
-
-    return partition<T>(v, low, high);
-}
-
-/* The main function that implements QuickSort
-  v --> Array to be sorted,
-  low  --> Starting index,
-  high  --> Ending index */
-template <typename T>
-void _rqsort(std::vector<T> v, int low, int high, std::mt19937 generator)
-{
-    if (low < high)
+    // choose the pivot randomly
+    swap(data[begin + int(double(rand()) / RAND_MAX * (end - begin + 1))], data[begin]);
+    int p = begin, i = begin + 1, j = begin + 1;
+    for (; j <= end; ++j)
     {
-        /* pi is partitioning index, arr[p] is now
-           at right place */
-        int pi = partition_r(v, low, high, generator);
-
-        // Separately sort elements before
-        // partition and after partition
-        _rqsort<T>(v, low, pi - 1, generator);
-        _rqsort<T>(v, pi + 1, high, generator);
+        if (data[j] <= data[p])
+        {
+            swap(data[i], data[j]);
+            ++i;
+        }
     }
+    swap(data[p], data[--i]);
+    return i;
 }
 
 template <typename T>
-void quick_sort_rand(std::vector<T> v, std::mt19937 generator)
+void _rqsort(std::vector<T> &data, int begin, int end)
 {
-    _rqsort<T>(v, 0, v.size() - 1, generator);
+    if (begin >= end || begin < 0)
+    {
+        return;
+    }
+    int p = partition(data, begin, end); // position of the last pivot
+    _rqsort(data, begin, p - 1);
+    _rqsort(data, p + 1, end);
+}
+
+template <typename T>
+void quick_sort_rand(std::vector<T> v)
+{
+    _rqsort<T>(v, 0, v.size() - 1);
 }
 #endif
