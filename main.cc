@@ -2,6 +2,7 @@
 #include <random>
 #include "lib/quick_sort.cc"
 #include "lib/quick_sort_rand.cc"
+#include "lib/merge_sort.cc"
 // Define size
 #ifndef SIZE
 #define SIZE 100
@@ -37,5 +38,20 @@ static void BM_QuickSortRandom(benchmark::State &state)
 }
 // Register the function as a benchmark
 BENCHMARK(BM_QuickSortRandom)->Iterations(ITERATIONS);
+
+static void BM_MergeSort(benchmark::State &state)
+{
+    std::random_device rand_dev;
+    std::mt19937 generator(rand_dev());
+    std::uniform_real_distribution<long double> distr(0, 1LL);
+    std::vector<long double> v;
+    for (int i = 1; i <= SIZE; i++)
+        v.push_back(distr(generator));
+
+    for (auto _ : state)
+        merge_sort(v.begin(), v.end());
+}
+
+BENCHMARK(BM_MergeSort)->Iterations(ITERATIONS);
 
 BENCHMARK_MAIN();
