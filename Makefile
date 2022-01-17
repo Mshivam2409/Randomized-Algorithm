@@ -1,4 +1,4 @@
-.PHONY: build benchmark
+.PHONY: build benchmark 
 
 
 install:
@@ -17,7 +17,8 @@ build:
 	rm -rf build
 	mkdir build
 	for number in 100 1000 10000; do \
-			g++ main.cc -std=c++17 -DBENCHMARK_EN -DSIZE=$$number -isystem benchmark/include -Lbenchmark/build/src -lbenchmark \
+			g++ main.cc -std=c++17 -DBENCHMARK_EN -DOVERRIDE_ITERATIONS -DITERATIONS=500 -DSIZE=$$number \
+			-isystem benchmark/include -Lbenchmark/build/src -lbenchmark \
 			-lpthread -Wall -ggdb3 -Ofast -march=native -o build/benchmark_$$number ; \
 	done
 
@@ -32,7 +33,8 @@ benchmark:
 test:
 	rm -rf temp
 	mkdir temp
-	g++ test.cc -std=c++17 -I googletest/googletest/include -Lgoogletest/build/lib -lgtest -lpthread -lgtest_main -o temp/test.out
+	g++ test.cc -std=c++17 -I googletest/googletest/include -Lgoogletest/build/lib \
+	-lgtest -lpthread -lgtest_main -o temp/test.out
 	temp/test.out
 	rm -rf temp
  
