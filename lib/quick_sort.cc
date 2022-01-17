@@ -1,50 +1,70 @@
 #include <vector>
-
+#include <map>
+#include <string>
 #ifndef QUICK_SORT
 #define QUICK_SORT
-template <typename T>
-int partition(std::vector<T> &arr, int low, int high)
-{
-    int pivot = arr[high]; // pivot
-    int i = (low - 1);     // Index of smaller element
 
-    for (int j = low; j <= high - 1; j++)
+#ifdef BENCHMARK_EN
+template <typename Iter>
+#include <benchmark/benchmark.h>
+inline Iter partition(const Iter &beg, const Iter &end, benchmark::UserCounters &counter)
+{
+    assert(beg != end);
+    auto piv = std::prev(end);
+    auto index_small = beg;
+
+    for (auto index_large = beg; index_large != piv; ++index_large)
     {
-        // If current element is smaller than or
-        // equal to pivot
-        if (arr[j] <= pivot)
+        counter["comparisions"]++;
+        if (*index_large <= *piv)
         {
-            i++; // increment index of smaller element
-            std::swap(arr[i], arr[j]);
+            std::swap(*index_large, *index_small);
+            std::advance(index_small, 1);
         }
     }
-    std::swap(arr[i + 1], arr[high]);
-    return (i + 1);
+    std::swap(*index_small, *piv);
+    return index_small;
 }
 
-/* The main function that implements QuickSort
-  v --> Array to be sorted,
-  low  --> Starting index,
-  high  --> Ending index */
-template <typename T>
-void _qsort(std::vector<T> &v, int low, int high)
+template <typename Iter>
+void quick_sort(const Iter &beg, const Iter &end, benchmark::UserCounters &counter)
 {
-    if (low < high)
+    if (std::distance(beg, end) > 1)
     {
-        /* pi is partitioning index, arr[p] is now
-           at right place */
-        int pi = partition(v, low, high);
-
-        // Separately sort elements before
-        // partition and after partition
-        _qsort<T>(v, low, pi - 1);
-        _qsort<T>(v, pi + 1, high);
+        const auto &piv = partition(beg, end, counter);
+        quick_sort(beg, piv, counter);
+        quick_sort(piv, end, counter);
     }
 }
+#endif
 
-template <typename T>
-void quick_sort(std::vector<T> v)
+template <typename Iter>
+inline Iter partition(const Iter &beg, const Iter &end)
 {
-    _qsort<T>(v, 0, v.size() - 1);
+    assert(beg != end);
+    auto piv = std::prev(end);
+    auto index_small = beg;
+
+    for (auto index_large = beg; index_large != piv; ++index_large)
+    {
+        if (*index_large <= *piv)
+        {
+            std::swap(*index_large, *index_small);
+            std::advance(index_small, 1);
+        }
+    }
+    std::swap(*index_small, *piv);
+    return index_small;
+}
+
+template <typename Iter>
+void quick_sort(const Iter &beg, const Iter &end)
+{
+    if (std::distance(beg, end) > 1)
+    {
+        const auto &piv = partition(beg, end);
+        quick_sort(beg, piv);
+        quick_sort(piv, end);
+    }
 }
 #endif
