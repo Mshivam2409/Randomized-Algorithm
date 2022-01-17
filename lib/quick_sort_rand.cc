@@ -3,79 +3,76 @@
 
 #ifndef RANDOMIZED_QUICK_SORT
 #define RANDOMIZED_QUICK_SORT
+
+#define RANDOM(min, max) min + rand() % ((max + 1) - min)
+
 #ifdef BENCHMARK_EN
 #include <benchmark/benchmark.h>
-template <typename T>
-int random_partition(std::vector<T> &data, int begin, int end, benchmark::UserCounters &counter)
+template <class ForwardIt, class UnaryPredicate>
+inline ForwardIt random_partition(ForwardIt first, ForwardIt last, benchmark::UserCounters &counter, UnaryPredicate p)
 {
-    // choose the pivot randomly
-    std::swap(data[begin + int(double(rand()) / RAND_MAX * (end - begin + 1))], data[begin]);
-    int p = begin, i = begin + 1, j = begin + 1;
-    for (; j <= end; ++j)
+    first = std::find_if_not(first, last, p);
+    if (first == last)
+        return first;
+
+    for (ForwardIt i = std::next(first); i != last; ++i)
     {
-        counter["comparisions"]++;
-        if (data[j] <= data[p])
+        counter["comparisions"] += 1;
+        if (p(*i))
         {
-            std::swap(data[i], data[j]);
-            ++i;
+            std::iter_swap(i, first);
+            ++first;
         }
     }
-    std::swap(data[p], data[--i]);
-    return i;
+    return first;
 }
 
-template <typename T>
-void quick_sort_rand_impl(std::vector<T> &data, int begin, int end, benchmark::UserCounters &counter)
+template <class FwdIt, class Compare = std::less<>>
+void quick_sort_rand(FwdIt first, FwdIt last, benchmark::UserCounters &counter, Compare cmp = Compare{})
 {
-    if (begin >= end || begin < 0)
-    {
+    auto const N = std::distance(first, last);
+    if (N <= 1)
         return;
-    }
-    int p = random_partition(data, begin, end, counter); // position of the last pivot
-    quick_sort_rand_impl(data, begin, p - 1, counter);
-    quick_sort_rand_impl(data, p + 1, end, counter);
-}
-
-template <typename T>
-void quick_sort_rand(std::vector<T> &v, benchmark::UserCounters &counter)
-{
-    quick_sort_rand_impl<T>(v, 0, v.size() - 1, counter);
+    auto const pivot = *std::next(first, RANDOM(0, N));
+    auto const middle1 = random_partition(first, last, counter, [=](auto const &elem)
+                                          { return cmp(elem, pivot); });
+    auto const middle2 = random_partition(middle1, last, counter, [=](auto const &elem)
+                                          { return !cmp(pivot, elem); });
+    quick_sort_rand(first, middle1, counter, cmp); // assert(std::is_sorted(first, middle1, cmp));
+    quick_sort_rand(middle2, last, counter, cmp);  // assert(std::is_sorted(middle2, last, cmp));
 }
 #endif
 
-template <typename T>
-int random_partition(std::vector<T> &data, int begin, int end)
+template <class ForwardIt, class UnaryPredicate>
+inline ForwardIt random_partition(ForwardIt first, ForwardIt last, UnaryPredicate p)
 {
-    // choose the pivot randomly
-    std::swap(data[begin + int(double(rand()) / RAND_MAX * (end - begin + 1))], data[begin]);
-    int p = begin, i = begin + 1, j = begin + 1;
-    for (; j <= end; ++j)
+    first = std::find_if_not(first, last, p);
+    if (first == last)
+        return first;
+
+    for (ForwardIt i = std::next(first); i != last; ++i)
     {
-        if (data[j] <= data[p])
+        if (p(*i))
         {
-            std::swap(data[i], data[j]);
-            ++i;
+            std::iter_swap(i, first);
+            ++first;
         }
     }
-    std::swap(data[p], data[--i]);
-    return i;
+    return first;
 }
 
-template <typename T>
-void quick_sort_rand_impl(std::vector<T> &data, int begin, int end)
+template <class FwdIt, class Compare = std::less<>>
+void quick_sort_rand(FwdIt first, FwdIt last, Compare cmp = Compare{})
 {
-    if (begin >= end || begin < 0)
-    {
+    auto const N = std::distance(first, last);
+    if (N <= 1)
         return;
-    }
-    int p = random_partition(data, begin, end); // position of the last pivot
-    quick_sort_rand_impl(data, begin, p - 1);
-    quick_sort_rand_impl(data, p + 1, end);
-}
-
-template <typename T>
-void quick_sort_rand(std::vector<T> &v)
-{
-    quick_sort_rand_impl<T>(v, 0, v.size() - 1);
+    auto const pivot = *std::next(first, N / 2);
+    auto const middle1 = random_partition(first, last, [=](auto const &elem)
+                                          { return cmp(elem, pivot); });
+    auto const middle2 = random_partition(middle1, last, [=](auto const &elem)
+                                          { return !cmp(pivot, elem); });
+    quick_sort_rand(first, middle1, cmp); // assert(std::is_sorted(first, middle1, cmp));
+    quick_sort_rand(middle2, last, cmp);  // assert(std::is_sorted(middle2, last, cmp));
 }
 #endif

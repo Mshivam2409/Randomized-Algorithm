@@ -38,7 +38,7 @@ static void BM_QuickSortRandom(benchmark::State &state)
     for (auto _ : state)
     {
         auto v = generate_vector<long double>(SIZE);
-        quick_sort_rand<long double>(v, state.counters);
+        quick_sort_rand(v.begin(), v.end(), state.counters);
     }
 }
 // Register the function as a benchmark

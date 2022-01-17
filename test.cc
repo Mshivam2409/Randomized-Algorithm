@@ -35,7 +35,7 @@ TEST(SortingTest, QuickSortRand)
     std::vector<long double> v(10);
     std::iota(v.begin(), v.end(), 0);
     std::shuffle(v.begin(), v.end(), std::mt19937{std::random_device{}()});
-    quick_sort_rand(v);
+    quick_sort_rand(v.begin(), v.end());
     for (int i = 0; i < v.size() - 1; ++i)
     {
         ASSERT_LE(v[i], v[i + 1]);

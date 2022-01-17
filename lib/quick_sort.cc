@@ -1,70 +1,77 @@
 #include <vector>
 #include <map>
+#include <bits/stl_function.h>
 #include <string>
 #ifndef QUICK_SORT
 #define QUICK_SORT
 
 #ifdef BENCHMARK_EN
-template <typename Iter>
 #include <benchmark/benchmark.h>
-inline Iter partition(const Iter &beg, const Iter &end, benchmark::UserCounters &counter)
+template <class ForwardIt, class UnaryPredicate>
+inline ForwardIt partition_impl(ForwardIt first, ForwardIt last, benchmark::UserCounters &counter, UnaryPredicate p)
 {
-    assert(beg != end);
-    auto piv = std::prev(end);
-    auto index_small = beg;
+    first = std::find_if_not(first, last, p);
+    if (first == last)
+        return first;
 
-    for (auto index_large = beg; index_large != piv; ++index_large)
+    for (ForwardIt i = std::next(first); i != last; ++i)
     {
-        counter["comparisions"]++;
-        if (*index_large <= *piv)
+        counter["comparisions"] += 1;
+        if (p(*i))
         {
-            std::swap(*index_large, *index_small);
-            std::advance(index_small, 1);
+            std::iter_swap(i, first);
+            ++first;
         }
     }
-    std::swap(*index_small, *piv);
-    return index_small;
+    return first;
 }
 
-template <typename Iter>
-void quick_sort(const Iter &beg, const Iter &end, benchmark::UserCounters &counter)
+template <class FwdIt, class Compare = std::less<>>
+void quick_sort(FwdIt first, FwdIt last, benchmark::UserCounters &counter, Compare cmp = Compare{})
 {
-    if (std::distance(beg, end) > 1)
-    {
-        const auto &piv = partition(beg, end, counter);
-        quick_sort(beg, piv, counter);
-        quick_sort(piv, end, counter);
-    }
+    auto const N = std::distance(first, last);
+    if (N <= 1)
+        return;
+    auto const pivot = *std::next(first, N / 2);
+    auto const middle1 = partition_impl(first, last, counter, [=](auto const &elem)
+                                        { return cmp(elem, pivot); });
+    auto const middle2 = partition_impl(middle1, last, counter, [=](auto const &elem)
+                                        { return !cmp(pivot, elem); });
+    quick_sort(first, middle1, counter, cmp); // assert(std::is_sorted(first, middle1, cmp));
+    quick_sort(middle2, last, counter, cmp);  // assert(std::is_sorted(middle2, last, cmp));
 }
 #endif
 
-template <typename Iter>
-inline Iter partition(const Iter &beg, const Iter &end)
+template <class ForwardIt, class UnaryPredicate>
+inline ForwardIt partition_impl(ForwardIt first, ForwardIt last, UnaryPredicate p)
 {
-    assert(beg != end);
-    auto piv = std::prev(end);
-    auto index_small = beg;
+    first = std::find_if_not(first, last, p);
+    if (first == last)
+        return first;
 
-    for (auto index_large = beg; index_large != piv; ++index_large)
+    for (ForwardIt i = std::next(first); i != last; ++i)
     {
-        if (*index_large <= *piv)
+        if (p(*i))
         {
-            std::swap(*index_large, *index_small);
-            std::advance(index_small, 1);
+            std::iter_swap(i, first);
+            ++first;
         }
     }
-    std::swap(*index_small, *piv);
-    return index_small;
+    return first;
 }
 
-template <typename Iter>
-void quick_sort(const Iter &beg, const Iter &end)
+template <class FwdIt, class Compare = std::less<>>
+void quick_sort(FwdIt first, FwdIt last, Compare cmp = Compare{})
 {
-    if (std::distance(beg, end) > 1)
-    {
-        const auto &piv = partition(beg, end);
-        quick_sort(beg, piv);
-        quick_sort(piv, end);
-    }
+    auto const N = std::distance(first, last);
+    if (N <= 1)
+        return;
+    auto const pivot = *std::next(first, N / 2);
+    auto const middle1 = partition_impl(first, last, [=](auto const &elem)
+                                        { return cmp(elem, pivot); });
+    auto const middle2 = partition_impl(middle1, last, [=](auto const &elem)
+                                        { return !cmp(pivot, elem); });
+    quick_sort(first, middle1, cmp); // assert(std::is_sorted(first, middle1, cmp));
+    quick_sort(middle2, last, cmp);  // assert(std::is_sorted(middle2, last, cmp));
 }
 #endif
